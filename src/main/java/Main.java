@@ -23,7 +23,7 @@ public class Main {
             Scanner scanner = new Scanner(clientSocket.getInputStream());
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
-                if (line.equals("+PING")) {
+                if (line.equals("ping")) {
                     final OutputStream outputStream = clientSocket.getOutputStream();
                     outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));
                 }else{
