@@ -28,7 +28,7 @@ public class Main {
                     outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));
                 }else{
                     final OutputStream outputStream = clientSocket.getOutputStream();
-                    outputStream.write("".getBytes(StandardCharsets.UTF_8));
+                    outputStream.write("+\r\n".getBytes(StandardCharsets.UTF_8));
                 }
              }
 
