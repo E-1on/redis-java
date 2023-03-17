@@ -26,6 +26,9 @@ public class Main {
                 if (line.equals("+PING")) {
                     final OutputStream outputStream = clientSocket.getOutputStream();
                     outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));
+                }else{
+                    final OutputStream outputStream = clientSocket.getOutputStream();
+                    outputStream.write("".getBytes(StandardCharsets.UTF_8));
                 }
              }
 
