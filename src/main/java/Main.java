@@ -1,6 +1,8 @@
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class Main {
   public static void main(String[] args){
@@ -16,6 +18,14 @@ public class Main {
           serverSocket.setReuseAddress(true);
           // Wait for connection from client.
           clientSocket = serverSocket.accept();
+            Scanner scanner = new Scanner(clientSocket.getInputStream());
+            String request = scanner.nextLine();
+
+            if (request.equals("PING")){
+
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                out.println("PONG");
+          }
         } catch (IOException e) {
           System.out.println("IOException: " + e.getMessage());
         } finally {
