@@ -22,8 +22,12 @@ public class Main {
             clientSocket = serverSocket.accept();
             Scanner scanner = new Scanner(clientSocket.getInputStream());
             while (scanner.hasNextLine()) {
-                final OutputStream outputStream = clientSocket.getOutputStream();
-                outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));}
+                String line = scanner.nextLine();
+                if (line.equals("+PING")) {
+                    final OutputStream outputStream = clientSocket.getOutputStream();
+                    outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));
+                }
+             }
 
 
 
