@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class Main {
@@ -23,7 +24,7 @@ public class Main {
 
             if (request.equals("PING")){
                 final OutputStream outputStream = clientSocket.getOutputStream();
-                outputStream.write("+PONG\r\n".getBytes());
+                outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));
           }
         } catch (IOException e) {
           System.out.println("IOException: " + e.getMessage());
