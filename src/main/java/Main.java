@@ -1,5 +1,5 @@
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
@@ -22,9 +22,8 @@ public class Main {
             String request = scanner.nextLine();
 
             if (request.equals("PING")){
-
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                out.println("+PONG");
+                final OutputStream outputStream = clientSocket.getOutputStream();
+                outputStream.write("+PONG\r\n".getBytes());
           }
         } catch (IOException e) {
           System.out.println("IOException: " + e.getMessage());
