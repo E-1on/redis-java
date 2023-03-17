@@ -24,7 +24,7 @@ public class Main {
             if (request.equals("PING")){
 
                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                out.println("PONG");
+                out.println("+PONG");
           }
         } catch (IOException e) {
           System.out.println("IOException: " + e.getMessage());
