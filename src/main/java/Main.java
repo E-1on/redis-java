@@ -21,6 +21,7 @@ public class Main {
             clientSocket = serverSocket.accept();
             Scanner scanner = new Scanner(clientSocket.getInputStream());
             String request = scanner.nextLine();
+            System.out.println("Request: " + request);
 
             final OutputStream outputStream = clientSocket.getOutputStream();
             outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));
