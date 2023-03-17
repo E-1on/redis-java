@@ -13,18 +13,20 @@ public class Main {
 //      Uncomment this block to pass the first stage
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
-        int port = 6379;
+        int port = 6380;
+        int pingCount = 0;
         try {
             serverSocket = new ServerSocket(port);
             serverSocket.setReuseAddress(true);
             // Wait for connection from client.
             clientSocket = serverSocket.accept();
             Scanner scanner = new Scanner(clientSocket.getInputStream());
-            String request = scanner.nextLine();
-            System.out.println("Request: " + request);
+            while (scanner.hasNextLine()) {
+                final OutputStream outputStream = clientSocket.getOutputStream();
+                outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));}
 
-            final OutputStream outputStream = clientSocket.getOutputStream();
-            outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));
+
+
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
         } finally {
