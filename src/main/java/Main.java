@@ -1,38 +1,52 @@
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        // You can use print statements as follows for debugging, they'll be visible when running tests.
+
+        // You can use print statements as follows for debugging, they'll be visible
+        // when running tests.
         System.out.println("Logs from your program will appear here!");
 
-//      Uncomment this block to pass the first stage
+        //  Uncomment this block to pass the first stage
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
-        int port = 6380;
-        int pingCount = 0;
+        int port = 6379;
         try {
             serverSocket = new ServerSocket(port);
             serverSocket.setReuseAddress(true);
             // Wait for connection from client.
             clientSocket = serverSocket.accept();
-            Scanner scanner = new Scanner(clientSocket.getInputStream());
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
-                if (line.equals("ping")) {
-                    final OutputStream outputStream = clientSocket.getOutputStream();
-                    outputStream.write("+PONG\r\n".getBytes(StandardCharsets.UTF_8));
-                }else{
-                    final OutputStream outputStream = clientSocket.getOutputStream();
-                    outputStream.write("+\r\n".getBytes(StandardCharsets.UTF_8));
+
+            // Getting input and output streams from clientSocket
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream());
+
+//            -      // Reading client input
+//                    -      //            String line = in.readLine();
+//                            -      //            String stringStart = "+";
+//                                    -      //            String end = "\r\n";
+//                                                  //            Reading client input
+//
+//                                                    -      // Responding to client input
+////                                                            -out.println("+PONG"
+////                                                                    - +"\r");
+            String stringStart = "+";
+            String responseEnd = "\r\n";
+            String pingResponse = "PONG";
+
+//            -      out.flush();
+            // Responding to client input
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.equalsIgnoreCase("ping")) {
+                    out.print(stringStart + pingResponse + responseEnd);
+                    out.flush();
                 }
-             }
-
-
+            }
+            clientSocket.close();
 
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
