@@ -46,24 +46,33 @@ public class Main {
             try {
                 Scanner scanner = new Scanner(clientSocket.getInputStream());
                 OutputStream outputStream = clientSocket.getOutputStream();
+                StringBuilder input = new StringBuilder();
 
                 while (scanner.hasNext()) {
-                    String command = scanner.nextLine();
-                    System.out.println("Received command: " + command);
+                    String next = scanner.nextLine();
+                    System.out.println("next = " + next);
+                    input.append(next);
 
-                    if (command.startsWith("ping")) {
+                    // Parse the incoming command
+                    String[] tokens = next.split("\\r\\n");
+                    String command = tokens[0];
+                    String argument = tokens.length > 1 ? tokens[1] : null;
+
+                    // Check if the command is an ECHO command
+                    if (command.startsWith("*2") && argument != null && argument.startsWith("$3") && "ECHO".equals(tokens[2])) {
+                        String echoValue = argument.substring(5);
+                        String response = "+" + echoValue + "\r\n";
+                        outputStream.write(response.getBytes());
+                    }
+                    // Check if the command is a PING command
+                    else if (command.equalsIgnoreCase("ping")) {
                         String pong = "+PONG\r\n";
                         outputStream.write(pong.getBytes());
-                    } else if (command.startsWith("echo")) {
-                        String[] tokens = command.split("\\s+");
-                        if (tokens.length > 1) {
-                            String echoResponse = String.join(" ", Arrays.copyOfRange(tokens, 1, tokens.length));
-                            outputStream.write(("+" + echoResponse + "\r\n").getBytes());
-                        } else {
-                            outputStream.write(("-ERR wrong number of arguments for 'echo' command\r\n").getBytes());
-                        }
-                    } else if (command.startsWith("DOCS")) {
-                        outputStream.write("+\r\n".getBytes());
+                    }
+                    // Otherwise, respond with an error
+                    else {
+                        String error = "-ERR unsupported command\r\n";
+                        outputStream.write(error.getBytes());
                     }
                 }
             } catch (IOException e) {
@@ -79,5 +88,6 @@ public class Main {
             }
         }
     }
+
 
 }
