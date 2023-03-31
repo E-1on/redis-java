@@ -1,63 +1,52 @@
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Main {
+
+    private static final int PORT = 6379;
+    private static final String STRING_START = "+";
+    private static final String RESPONSE_END = "\r\n";
+    private static final String PING_REQUEST = "ping";
+    private static final String PONG_RESPONSE = "PONG";
+
     public static void main(String[] args) {
-
-        // You can use print statements as follows for debugging, they'll be visible
-        // when running tests.
         System.out.println("Logs from your program will appear here!");
+        startServer();
+    }
 
-        //  Uncomment this block to pass the first stage
-        ServerSocket serverSocket = null;
-        Socket clientSocket = null;
-        int port = 6379;
-        try {
-            serverSocket = new ServerSocket(port);
+    private static void startServer() {
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             serverSocket.setReuseAddress(true);
-            // Wait for connection from client.
-            clientSocket = serverSocket.accept();
+            System.out.println("Server started on port " + PORT);
 
-            // Getting input and output streams from clientSocket
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(clientSocket.getInputStream()));
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream());
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Client connected: " + clientSocket.getInetAddress());
 
-//            -      // Reading client input
-//                    -      //            String line = in.readLine();
-//                            -      //            String stringStart = "+";
-//                                    -      //            String end = "\r\n";
-//                                                  //            Reading client input
-//
-//                                                    -      // Responding to client input
-////                                                            -out.println("+PONG"
-////                                                                    - +"\r");
-            String stringStart = "+";
-            String responseEnd = "\r\n";
-            String pingResponse = "PONG";
+                handleClientRequest(clientSocket);
+            }
+        } catch (IOException e) {
+            System.err.println("Error starting server: " + e.getMessage());
+        }
+    }
 
-//            -      out.flush();
-            // Responding to client input
+    private static void handleClientRequest(Socket clientSocket) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+
             String line;
             while ((line = in.readLine()) != null) {
-                if (line.equalsIgnoreCase("ping")) {
-                    out.print(stringStart + pingResponse + responseEnd);
-                    out.flush();
+                if (line.equalsIgnoreCase(PING_REQUEST)) {
+                    out.println(STRING_START + PONG_RESPONSE + RESPONSE_END);
                 }
             }
-            clientSocket.close();
-
+            System.out.println("Client disconnected: " + clientSocket.getInetAddress());
         } catch (IOException e) {
-            System.out.println("IOException: " + e.getMessage());
-        } finally {
-            try {
-                if (clientSocket != null) {
-                    clientSocket.close();
-                }
-            } catch (IOException e) {
-                System.out.println("IOException: " + e.getMessage());
-            }
+            System.err.println("Error handling client request: " + e.getMessage());
         }
     }
 }
