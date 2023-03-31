@@ -1,56 +1,75 @@
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
-    public static void main(String[] args) {
-        System.out.println("Logs from your program will appear here!");
-        startServer();
-    }
 
-    private static void startServer() {
-        ServerSocket serverSocket = null;
-        try {
-            serverSocket = new ServerSocket(6379);
+    public static void main(String[] args) {
+        // You can use print statements as follows for debugging, they'll be visible
+        // when running tests.
+        System.out.println("Logs from your program will appear here!");
+        final int port = 6379;
+
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
             serverSocket.setReuseAddress(true);
-            System.out.println("Server started on port 6379");
+            ExecutorService executorService = Executors.newFixedThreadPool(10);
 
             while (true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected: " + clientSocket.getInetAddress());
+                Socket clientSocket;
+                try {
+                    clientSocket = serverSocket.accept();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
-                Thread clientThread = new Thread(() -> {
-                    try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                         PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
-
-                        String line;
-                        while ((line = in.readLine()) != null) {
-                            if (line.equalsIgnoreCase("ping")) {
-                                out.println("+PONG\r\n");
-                            }
-                        }
-                        System.out.println("Client disconnected: " + clientSocket.getInetAddress());
-                    } catch (IOException e) {
-                        System.err.println("Error handling client request: " + e.getMessage());
-                    } finally {
-                        try {
-                            clientSocket.close();
-                        } catch (IOException e) {
-                            System.err.println("Error closing client socket: " + e.getMessage());
-                        }
-                    }
-                });
-                clientThread.start();
+                executorService.execute(new RedisConnection(clientSocket));
             }
-        } catch (IOException e) {
-            System.err.println("Error starting server: " + e.getMessage());
-        } finally {
+        } catch (Exception e) {
+            System.out.println("error: " + e.getMessage());
+        }
+    }
+
+    public static class RedisConnection extends Thread {
+
+        private Socket clientSocket;
+
+        public RedisConnection(Socket clientSocket) {
+            this.clientSocket = clientSocket;
+        }
+
+        @Override
+        public void run() {
             try {
-                if (serverSocket != null) {
-                    serverSocket.close();
+                Scanner scanner = new Scanner(clientSocket.getInputStream());
+                OutputStream outputStream = clientSocket.getOutputStream();
+                StringBuilder input = new StringBuilder();
+
+                while (scanner.hasNext()) {
+                    String next = scanner.nextLine();
+                    System.out.println("next = " + next);
+                    input.append(next);
+
+                    if (next.startsWith("ping")) {
+                        String pong = "+PONG\r\n";
+                        outputStream.write(pong.getBytes());
+                    } else if (next.startsWith("DOCS")) {
+                        outputStream.write("+\r\n".getBytes());
+                    }
                 }
             } catch (IOException e) {
-                System.err.println("Error closing server socket: " + e.getMessage());
+                System.out.println("IOException: " + e.getMessage());
+            } finally {
+                try {
+                    if (clientSocket != null) {
+                        clientSocket.close();
+                    }
+                } catch (IOException e) {
+                    System.out.println("IOException: " + e.getMessage());
+                }
             }
         }
     }
