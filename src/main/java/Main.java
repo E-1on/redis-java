@@ -27,7 +27,8 @@ public class Main {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Client connected: " + clientSocket.getInetAddress());
 
-                handleClientRequest(clientSocket);
+                Thread thread = new Thread(() -> handleClientRequest(clientSocket));
+                thread.start();
             }
         } catch (IOException e) {
             System.err.println("Error starting server: " + e.getMessage());
@@ -47,6 +48,12 @@ public class Main {
             System.out.println("Client disconnected: " + clientSocket.getInetAddress());
         } catch (IOException e) {
             System.err.println("Error handling client request: " + e.getMessage());
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                System.err.println("Error closing client socket: " + e.getMessage());
+            }
         }
     }
 }
