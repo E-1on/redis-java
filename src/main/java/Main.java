@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,7 +35,6 @@ public class Main {
     }
 
     public static class RedisConnection extends Thread {
-
         private Socket clientSocket;
 
         public RedisConnection(Socket clientSocket) {
@@ -46,17 +46,23 @@ public class Main {
             try {
                 Scanner scanner = new Scanner(clientSocket.getInputStream());
                 OutputStream outputStream = clientSocket.getOutputStream();
-                StringBuilder input = new StringBuilder();
 
                 while (scanner.hasNext()) {
-                    String next = scanner.nextLine();
-                    System.out.println("next = " + next);
-                    input.append(next);
+                    String command = scanner.nextLine();
+                    System.out.println("Received command: " + command);
 
-                    if (next.startsWith("ping")) {
+                    if (command.startsWith("ping")) {
                         String pong = "+PONG\r\n";
                         outputStream.write(pong.getBytes());
-                    } else if (next.startsWith("DOCS")) {
+                    } else if (command.startsWith("echo")) {
+                        String[] tokens = command.split("\\s+");
+                        if (tokens.length > 1) {
+                            String echoResponse = String.join(" ", Arrays.copyOfRange(tokens, 1, tokens.length));
+                            outputStream.write(("+" + echoResponse + "\r\n").getBytes());
+                        } else {
+                            outputStream.write(("-ERR wrong number of arguments for 'echo' command\r\n").getBytes());
+                        }
+                    } else if (command.startsWith("DOCS")) {
                         outputStream.write("+\r\n".getBytes());
                     }
                 }
@@ -73,4 +79,5 @@ public class Main {
             }
         }
     }
+
 }
